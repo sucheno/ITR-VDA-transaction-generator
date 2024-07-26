@@ -21,11 +21,10 @@
 </head>
 <body>
     <h1>ITR-VDA-transaction-generator</h1>
-    <a href="template_p2p_transactions.csv" download>Download Template</a>
-    <br><br>
     <input type="file" id="csvFileInput" accept=".csv" />
     <br><br>
-    <button onclick="processCSV()">Process CSV</button>
+    <button onclick="processCSV()">Generate VDA transaction from Binance P2P export</button>
+    <br><br>
     <div id="output"></div>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.0/papaparse.min.js"></script>
     <script>
@@ -38,7 +37,7 @@
             }
             Papa.parse(file, {
                 header: true,
-                delimiter: "\t",
+                delimiter: ",",
                 complete: function(results) {
                     const data = results.data;
                     const processedData = data.map(row => calculateFields(row)).filter(row => row !== null);
@@ -57,13 +56,13 @@
         function calculateFields(row) {
             try {
                 const quantity = parseFloat(row['Quantity']);
-                const p2pPrice = parseFloat(row['P2PRate']);
+                const p2pPrice = parseFloat(row['Price']);
                 const googlePrice = p2pPrice * 0.98; // 98% of P2PRate
                 const costOfAcquisition = quantity * googlePrice;
                 const considerationReceived = quantity * p2pPrice;
                 const tdsWithheld = considerationReceived * 0.01;
                 const profit = considerationReceived - costOfAcquisition - tdsWithheld;
-                const acquisitionDate = new Date(row['P2PDate']).toLocaleString();
+                const acquisitionDate = formatDate(new Date(row['Created Time']));
                 return {
                     'Date of Acquisition/Transfer': acquisitionDate,
                     'Cost of Acquisition (₹)': `₹${costOfAcquisition.toFixed(2)}`,
@@ -80,6 +79,13 @@
             }
         }
 
+        function formatDate(date) {
+            const day = String(date.getDate()).padStart(2, '0');
+            const month = date.toLocaleString('default', { month: 'short' });
+            const year = date.getFullYear();
+            return `${day}-${month}-${year}`;
+        }
+
         function displayTable(data) {
             const headers = Object.keys(data[0]);
             const table = document.createElement('table');
@@ -87,7 +93,7 @@
             const tbody = document.createElement('tbody');
             const headerRow = document.createElement('tr');
             const thCheckbox = document.createElement('th');
-            thCheckbox.textContent = 'Mark as Done';
+            thCheckbox.textContent = 'Mark as Filed';
             headerRow.appendChild(thCheckbox);
             headers.forEach(header => {
                 const th = document.createElement('th');
