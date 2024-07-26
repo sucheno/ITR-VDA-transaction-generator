@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CSV Transaction Processor</title>
+    <title>ITR-VDA-transaction-generator</title>
     <style>
         table {
             width: 100%;
@@ -20,13 +20,13 @@
     </style>
 </head>
 <body>
-    <h1>CSV Transaction Processor</h1>
+    <h1>ITR-VDA-transaction-generator</h1>
+    <a href="template_p2p_transactions.csv" download>Download Template</a>
+    <br><br>
     <input type="file" id="csvFileInput" accept=".csv" />
-    <br>
-    <br>
+    <br><br>
     <button onclick="processCSV()">Process CSV</button>
     <div id="output"></div>
-
     <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.0/papaparse.min.js"></script>
     <script>
         function processCSV() {
@@ -36,7 +36,6 @@
                 alert('Please upload a CSV file.');
                 return;
             }
-
             Papa.parse(file, {
                 header: true,
                 delimiter: "\t",
@@ -54,19 +53,16 @@
                 }
             });
         }
-
         function calculateFields(row) {
             try {
                 const quantity = parseFloat(row['Quantity']);
                 const googlePrice = parseFloat(row['GoogleUSDTtoINRrate']);
                 const p2pPrice = parseFloat(row['P2PRate']);
-
                 const costOfAcquisition = quantity * googlePrice;
                 const considerationReceived = quantity * p2pPrice;
                 const tdsWithheld = considerationReceived * 0.01;
                 const profit = considerationReceived - costOfAcquisition - tdsWithheld;
                 const taxRefund = profit * 0.10;
-
                 return {
                     'Date of Acquisition/Transfer': row['P2PDate'],
                     'Cost of Acquisition (₹)': `₹${costOfAcquisition.toFixed(2)}`,
@@ -83,13 +79,11 @@
                 return null;
             }
         }
-
         function displayTable(data) {
             const headers = Object.keys(data[0]);
             const table = document.createElement('table');
             const thead = document.createElement('thead');
             const tbody = document.createElement('tbody');
-
             const headerRow = document.createElement('tr');
             const thCheckbox = document.createElement('th');
             thCheckbox.textContent = 'Mark as Done';
@@ -100,7 +94,6 @@
                 headerRow.appendChild(th);
             });
             thead.appendChild(headerRow);
-
             data.forEach(row => {
                 const tr = document.createElement('tr');
                 const tdCheckbox = document.createElement('td');
@@ -115,16 +108,13 @@
                 });
                 tdCheckbox.appendChild(checkbox);
                 tr.appendChild(tdCheckbox);
-
                 headers.forEach(header => {
                     const td = document.createElement('td');
                     td.textContent = row[header];
                     tr.appendChild(td);
                 });
-
                 tbody.appendChild(tr);
             });
-
             table.appendChild(thead);
             table.appendChild(tbody);
             document.getElementById('output').innerHTML = '';
