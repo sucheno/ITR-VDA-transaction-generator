@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CSV Transaction Processor</title>
+    <style>
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        th, td {
+            border: 1px solid black;
+            padding: 8px;
+            text-align: left;
+        }
+        th {
+            background-color: #f2f2f2;
+        }
+    </style>
+</head>
+<body>
+    <h1>CSV Transaction Processor</h1>
+    <input type="file" id="csvFileInput" accept=".csv" />
+    <br>
+    <br>
+    <button onclick="processCSV()">Process CSV</button>
+    <div id="output"></div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.0/papaparse.min.js"></script>
+    <script>
+        function processCSV() {
+            const fileInput = document.getElementById('csvFileInput');
+            const file = fileInput.files[0];
+            if (!file) {
+                alert('Please upload a CSV file.');
+                return;
+            }
+
+            Papa.parse(file, {
+                header: true,
+                delimiter: "\t",
+                complete: function(results) {
+                    const data = results.data;
+                    const processedData = data.map(row => calculateFields(row)).filter(row => row !== null);
+                    if (processedData.length > 0) {
+                        displayTable(processedData);
+                    } else {
+                        document.getElementById('output').innerHTML = '<p>No valid data to display.</p>';
+                    }
+                },
+                error: function(error) {
+                    console.error('Error parsing CSV:', error);
+                }
+            });
+        }
+
+        function calculateFields(row) {
+            try {
+                const quantity = parseFloat(row['Quantity']);
+                const googlePrice = parseFloat(row['GoogleUSDTtoINRrate']);
+                const p2pPrice = parseFloat(row['P2PRate']);
+
+                const costOfAcquisition = quantity * googlePrice;
+                const considerationReceived = quantity * p2pPrice;
+                const tdsWithheld = considerationReceived * 0.01;
+                const profit = considerationReceived - costOfAcquisition - tdsWithheld;
+                const taxRefund = profit * 0.10;
+
+                return {
+                    'Date of Acquisition/Transfer': row['P2PDate'],
+                    'Cost of Acquisition (₹)': `₹${costOfAcquisition.toFixed(2)}`,
+                    'Consideration Received (₹)': `₹${considerationReceived.toFixed(2)}`,
+                    'TDS Withheld (₹)': `₹${tdsWithheld.toFixed(2)}`,
+                    'Profit (₹)': `₹${profit.toFixed(2)}`,
+                    'Tax refund (₹)': `₹${taxRefund.toFixed(2)}`,
+                    'Quantity': quantity,
+                    'GoogleUSDTtoINRrate (₹)': `₹${googlePrice.toFixed(2)}`,
+                    'P2PRate (₹)': `₹${p2pPrice.toFixed(2)}`
+                };
+            } catch (error) {
+                console.error('Error processing row:', error);
+                return null;
+            }
+        }
+
+        function displayTable(data) {
+            const headers = Object.keys(data[0]);
+            const table = document.createElement('table');
+            const thead = document.createElement('thead');
+            const tbody = document.createElement('tbody');
+
+            const headerRow = document.createElement('tr');
+            const thCheckbox = document.createElement('th');
+            thCheckbox.textContent = 'Mark as Done';
+            headerRow.appendChild(thCheckbox);
+            headers.forEach(header => {
+                const th = document.createElement('th');
+                th.textContent = header;
+                headerRow.appendChild(th);
+            });
+            thead.appendChild(headerRow);
+
+            data.forEach(row => {
+                const tr = document.createElement('tr');
+                const tdCheckbox = document.createElement('td');
+                const checkbox = document.createElement('input');
+                checkbox.type = 'checkbox';
+                checkbox.addEventListener('change', function() {
+                    if (this.checked) {
+                        tr.style.backgroundColor = '#6f6f6f';
+                    } else {
+                        tr.style.backgroundColor = '';
+                    }
+                });
+                tdCheckbox.appendChild(checkbox);
+                tr.appendChild(tdCheckbox);
+
+                headers.forEach(header => {
+                    const td = document.createElement('td');
+                    td.textContent = row[header];
+                    tr.appendChild(td);
+                });
+
+                tbody.appendChild(tr);
+            });
+
+            table.appendChild(thead);
+            table.appendChild(tbody);
+            document.getElementById('output').innerHTML = '';
+            document.getElementById('output').appendChild(table);
+        }
+    </script>
+</body>
+</html>
