@@ -53,23 +53,23 @@
                 }
             });
         }
+
         function calculateFields(row) {
             try {
                 const quantity = parseFloat(row['Quantity']);
-                const googlePrice = parseFloat(row['GoogleUSDTtoINRrate']);
                 const p2pPrice = parseFloat(row['P2PRate']);
+                const googlePrice = p2pPrice * 0.98; // 98% of P2PRate
                 const costOfAcquisition = quantity * googlePrice;
                 const considerationReceived = quantity * p2pPrice;
                 const tdsWithheld = considerationReceived * 0.01;
                 const profit = considerationReceived - costOfAcquisition - tdsWithheld;
-                const taxRefund = profit * 0.10;
+                const acquisitionDate = new Date(row['P2PDate']).toLocaleString();
                 return {
-                    'Date of Acquisition/Transfer': row['P2PDate'],
+                    'Date of Acquisition/Transfer': acquisitionDate,
                     'Cost of Acquisition (₹)': `₹${costOfAcquisition.toFixed(2)}`,
                     'Consideration Received (₹)': `₹${considerationReceived.toFixed(2)}`,
                     'TDS Withheld (₹)': `₹${tdsWithheld.toFixed(2)}`,
                     'Profit (₹)': `₹${profit.toFixed(2)}`,
-                    'Tax refund (₹)': `₹${taxRefund.toFixed(2)}`,
                     'Quantity': quantity,
                     'GoogleUSDTtoINRrate (₹)': `₹${googlePrice.toFixed(2)}`,
                     'P2PRate (₹)': `₹${p2pPrice.toFixed(2)}`
@@ -79,6 +79,7 @@
                 return null;
             }
         }
+
         function displayTable(data) {
             const headers = Object.keys(data[0]);
             const table = document.createElement('table');
@@ -94,6 +95,7 @@
                 headerRow.appendChild(th);
             });
             thead.appendChild(headerRow);
+            let totalTDSWithheld = 0;
             data.forEach(row => {
                 const tr = document.createElement('tr');
                 const tdCheckbox = document.createElement('td');
@@ -112,6 +114,9 @@
                     const td = document.createElement('td');
                     td.textContent = row[header];
                     tr.appendChild(td);
+                    if (header === 'TDS Withheld (₹)') {
+                        totalTDSWithheld += parseFloat(row[header].replace('₹', ''));
+                    }
                 });
                 tbody.appendChild(tr);
             });
@@ -119,6 +124,9 @@
             table.appendChild(tbody);
             document.getElementById('output').innerHTML = '';
             document.getElementById('output').appendChild(table);
+            const totalTDSWithheldElement = document.createElement('p');
+            totalTDSWithheldElement.innerHTML = `Total TDS Withheld (₹) = <strong>${totalTDSWithheld.toFixed(2)}</strong>`;
+            document.getElementById('output').appendChild(totalTDSWithheldElement);
         }
     </script>
 </body>
