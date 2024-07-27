@@ -61,14 +61,14 @@
                 const costOfAcquisition = quantity * googlePrice;
                 const considerationReceived = quantity * p2pPrice;
                 const tdsWithheld = considerationReceived * 0.01;
-                const profit = considerationReceived - costOfAcquisition - tdsWithheld;
+                const profit = considerationReceived - costOfAcquisition;
                 const acquisitionDate = formatDate(new Date(row['Created Time']));
                 return {
                     'Date of Acquisition/Transfer': acquisitionDate,
                     'Cost of Acquisition (₹)': `₹${costOfAcquisition.toFixed(2)}`,
                     'Consideration Received (₹)': `₹${considerationReceived.toFixed(2)}`,
-                    'TDS Withheld (₹)': `₹${tdsWithheld.toFixed(2)}`,
                     'Profit (₹)': `₹${profit.toFixed(2)}`,
+                    'TDS Withheld (₹)': `₹${tdsWithheld.toFixed(2)}`,                    
                     'Quantity': quantity,
                     'GoogleUSDTtoINRrate (₹)': `₹${googlePrice.toFixed(2)}`,
                     'P2PRate (₹)': `₹${p2pPrice.toFixed(2)}`
