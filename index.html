@@ -21,9 +21,11 @@
 </head>
 <body>
     <h1>ITR-VDA-transaction-generator</h1>
+    <h3>Step 1 - Upload the P2P transaction export from Binance </h3> 
     <input type="file" id="csvFileInput" accept=".csv" />
     <br><br>
-    <button onclick="processCSV()">Generate VDA transaction from Binance P2P export</button>
+    <h3>Step 2 - Generate VDA transactions for ITR filing </h3> 
+    <button onclick="processCSV()">Generate</button>
     <br><br>
     <div id="output"></div>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.0/papaparse.min.js"></script>
